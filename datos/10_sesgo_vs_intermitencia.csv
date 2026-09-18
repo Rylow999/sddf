@@ -1,0 +1,6 @@
+mu,prefactor_a,interpretacion
+0.0000,2.083333,K41 puro
+0.0212,2.136670,sesgo de Re finito del barrido
+0.0250,2.146302,intermitencia baja
+0.0330,2.166650,zeta_2 = 0.70 (DNS)
+0.0400,2.184533,intermitencia alta

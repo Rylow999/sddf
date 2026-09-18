@@ -1,0 +1,7 @@
+delta,n_usados,n_cortados,ok,G_estrella
+0.1,3,18,False,1.782222
+0.25,3,18,False,1.782222
+0.5,3,18,False,1.782222
+1.0,9,12,True,10.188367
+
+G_sin_truncar_21_puntos,33.392638

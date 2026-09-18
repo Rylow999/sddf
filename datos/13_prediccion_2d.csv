@@ -1,0 +1,6 @@
+regimen,exponente_espectral_q,exponente_de_k_corte,a_predicho,fraccion
+3D K41 (inercial),5/3,3/4,2.083333,25/12
+3D con mu=0.033,1.700,3/4,2.167500,-
+2D cascada de enstrofia,3,1/2,4.500000,9/2
+2D Kraichnan-Batchelor con log,3,1/2,4.500000,9/2
+2D cascada inversa,5/3,0,0.000000,0
