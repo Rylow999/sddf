@@ -67,4 +67,49 @@ para las limitaciones abiertas (recuperación de `spectrum_grueso.csv` y
 recálculo del paper 2D, ambos bloqueados por falta de datos de entrada, no
 de método).
 
+## Novedades v3.1 (2026-09-17) — fixes post-auditoría
+
+Cambios derivados de la auditoría externa, validados con tests
+(ver `CHANGELOG.md` para el detalle completo):
+
+- **`sddf_core.q_from_G_closed_form`** — despeje analítico directo de q
+  desde la forma cerrada (cuadrática explícita, error ~1e-14). Reemplaza la
+  iteración de punto fijo. **Lanza ValueError si el discriminante es
+  negativo** (datos inconsistentes con el modelo) en vez de devolver 0 en
+  silencio.
+- **`sddf_core.inertial_window`** — detector de rango inercial de **dos
+  lados** (k_low + k_high). El pipeline original solo cortaba el lado de
+  disipación; el lado de forzado (k bajos) quedaba invisible y contaminaba
+  el integral.
+- Semántica de `truncate_by_slope_interp` documentada: el corte es contra
+  `s_ref` (K41 por defecto), no contra el q que se está estimando.
+
+### Pendiente (honesto)
+
+- **Null model del periodograma de Migdal**: el score actual
+  (`P.max()/median(P)`) no es significancia estadística — fabrica picos con
+  "SNR"~19 sin señal inyectada. El null model (500 espectros sin modulación +
+  p-values empíricos + Bonferroni) está en
+  `NOUS/RHO_LAW/experiments/exp_null_model_periodograma.py`.
+- **Sincronizar Rust con Python**: la implementación Rust no tiene
+  interpolación de corte ni el fallback beta correcto (quimera). Deprecada
+  hasta sincronizar.
+- **Validación con DNS real**: todos los espectros actuales son sintéticos.
+  Siguiente paso: JHTDB (Johns Hopkins Turbulence Database, públicos).
+
+## Conexión con la ley ρ (RHO_LAW)
+
+El observable G[u] comparte el patrón del "colapso del observador" con la
+ley ρ del repo [`Rylow999/fhrr-rho-collapse`](https://github.com/Rylow999/fhrr-rho-collapse):
+
+- Cuando el espectro se mide con grilla discreta, el error de truncamiento
+  **no decae monótonamente** — oscila.
+- El sustrato (el flujo) tiene la estructura; el instrumento (la grilla) es
+  el que la distorsiona cerca de su límite de resolución.
+- El experimento multi-observador (repo `Rylow999/rho-law`) muestra que hay
+  cantidades invariants entre observadores (ratios entre ventanas, CV≈0.24)
+  y cantidades que son artefacto (G_total, CV≈0.7).
+
+Ver `NOUS/RHO_LAW/` para el marco unificador trans-dominio.
+
 *Per Aspera, Ad Astra.*
