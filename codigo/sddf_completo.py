@@ -19,6 +19,9 @@ Genera todos los CSV y PNG del paquete. Bloques:
   12  sensibilidad a beta
   13  prediccion para turbulencia 2D
   14  test log-periodico (firma tipo Migdal)
+  15  espectros con 2D cut interp
+  16  null model del periodograma (500 nulos, p-empiricos + Bonferroni)
+  17  validacion DNS real: JHTDB isotropic1024coarse -> datos reales
 
 Uso: python3 sddf_completo.py [dir_espectros] [dir_salida_datos] [dir_figuras]
 """

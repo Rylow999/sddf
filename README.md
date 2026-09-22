@@ -86,16 +86,37 @@ Cambios derivados de la auditoría externa, validados con tests
 
 ### Pendiente (honesto)
 
-- **Null model del periodograma de Migdal**: el score actual
-  (`P.max()/median(P)`) no es significancia estadística — fabrica picos con
-  "SNR"~19 sin señal inyectada. El null model (500 espectros sin modulación +
-  p-values empíricos + Bonferroni) está en
-  `NOUS/RHO_LAW/experiments/exp_null_model_periodograma.py`.
-- **Sincronizar Rust con Python**: la implementación Rust no tiene
-  interpolación de corte ni el fallback beta correcto (quimera). Deprecada
-  hasta sincronizar.
-- **Validación con DNS real**: todos los espectros actuales son sintéticos.
-  Siguiente paso: JHTDB (Johns Hopkins Turbulence Database, públicos).
+- ~~**Null model del periodograma de Migdal**~~ **RESUELTO (2026-09-22)**:
+  `codigo/exp_null_model_periodograma.py` — 500 nulos instrumentales
+  (beta/nu jittereados + ruido de medición 1e-4), p-values empíricos,
+  Bonferroni y umbral global. Resultados en
+  `datos/16_null_model_periodograma.csv`:
+  | amp | SNR_obs | p empírico | p Bonferroni | ¿pasa? |
+  |-----|---------|-----------|--------------|--------|
+  | 0.000 | 19.40 | 0.567 | 1.00 | no — el "SNR~19" reportado antes **era**
+  artefacto del null, no señal (confirmado: los 500 nulos tienen
+  media 19.42 sin señal inyectada) |
+  | 0.002 | 18.56 | 1.0 | 1.0 | no |
+  | 0.005 | 15.65 | 1.0 | 1.0 | no |
+  | 0.020 | 76.95 | 0.0020 | 0.00998 | **sí** |
+  | 0.050 | 293.5 | 0.0020 | 0.00998 | **sí** (y el pico cae en ω≈2.0, el
+  inyectado; los que fallan caen en ω≈0.9, basura del detrend) |
+
+  **Conclusión**: el test es calibrado. El umbral de detección real está
+  entre amp=0.005 (no) y amp=0.02 (sí) con esta ventana inercial y esta
+  estación de análisis.
+- ~~**Sincronizar Rust con Python**~~ **RESUELTO (2026-09-22)**: el binario
+  `codigo/rust/bin/sddf` v3.1 ya tiene `truncate_by_slope_interp` con
+  interpolación lineal idéntica a la de Python (mismo k_corte, mismo G* al
+  dígito sobre `spectrum_Re_1000.csv`) y el fallback sintético usa
+  Pao+β=2.25 (quimera acordada) en vez de Pope 5.2.
+- **Validación con DNS real**: **EN CURSO (2026-09-22)**,
+  `codigo/exp_dns_real_isotropo.py` baja el snapshot público JHTDB
+  isotropic1024coarse (256³, 1 timestep, Re_λ≈433) del mirror de
+  HuggingFace, calcula E(k) por FFT + conchas |k| y corre el pipeline.
+  Resultados en `datos/espectros/spectrum_jhtdb_isotropic1024coarse_t0.csv`
+  y `datos/17_dns_real_resumen.txt`. Próximos pasos: promediar los 10
+  timesteps y bajar el canal4094 (Re_τ≈5200) para inercial largo.
 
 ## Conexión con la ley ρ (RHO_LAW)
 

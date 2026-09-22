@@ -25,7 +25,9 @@ use std::io::{BufRead, BufReader, Write};
 
 const SLOPE_K41: f64 = -5.0 / 3.0;
 
-/// Espectro sintetico de Pope (solo para el modo fallback).
+/// Espectro sintetico de Pao (equivalente funcional a Pope con f_eta
+/// exponencial simple). beta=2.25 (=1.5*C_K con C_K=1.5): fallback
+/// quimera acordado en v3.1. NO usar 5.2 (Pope) sin verificar el espectro.
 fn pope_spectrum(k: f64, epsilon: f64, nu: f64, c: f64, beta: f64) -> f64 {
     let eta: f64 = (nu.powi(3) / epsilon).powf(0.25);
     let k_eta: f64 = k * eta;
@@ -105,23 +107,43 @@ fn truncate_tail(k_vec: &[f64], e_vec: &[f64], rel_thresh: f64) -> (Vec<f64>, Ve
 /// donde |d(ln E)/d(ln k) + 5/3| > delta. Es data-driven y equivale a un
 /// corte en k*eta = cte, que es lo fisicamente correcto: aisla el rango
 /// inercial y deja fuera la zona de disipacion, cuya contribucion diverge.
-fn truncate_by_slope(k_vec: &[f64], e_vec: &[f64], delta: f64) -> (Vec<f64>, Vec<f64>) {
+/// Corte por desviacion de pendiente CON INTERPOLACION LINEAL en (ln k, s),
+/// sincronizado con sddf_core.truncate_by_slope_interp (v3.1).
+/// El corte se hace contra `s_ref` (K41 por defecto), no contra el q que
+/// se este estimando. Devuelve (k_trunc, e_trunc, n_eliminados, ok, k_corte).
+fn truncate_by_slope_interp(
+    k_vec: &[f64],
+    e_vec: &[f64],
+    delta: f64,
+    s_ref: f64,
+) -> (Vec<f64>, Vec<f64>, usize, bool, f64) {
     let n: usize = k_vec.len();
     if n < 3 {
-        return (k_vec.to_vec(), e_vec.to_vec());
+        return (k_vec.to_vec(), e_vec.to_vec(), 0, false, f64::NAN);
     }
     let s: Vec<f64> = log_slope(k_vec, e_vec);
-    let mut cut: usize = n;
-    for i in 0..n {
-        if (s[i] - SLOPE_K41).abs() > delta {
-            cut = i;
-            break;
-        }
+    let dev: Vec<f64> = s.iter().map(|x| (x - s_ref).abs()).collect();
+    let j_opt: Option<usize> = dev.iter().position(|&d| d > delta);
+    let j: usize = match j_opt {
+        None => return (k_vec.to_vec(), e_vec.to_vec(), 0, true, *k_vec.last().unwrap()),
+        Some(j) => j,
+    };
+    if j < 3 {
+        return (k_vec[..3].to_vec(), e_vec[..3].to_vec(), n - 3, false, k_vec[2]);
     }
-    if cut < 3 {
-        cut = 3;
-    }
-    (k_vec[..cut].to_vec(), e_vec[..cut].to_vec())
+    let lk: Vec<f64> = k_vec.iter().map(|x| x.ln()).collect();
+    let d0: f64 = dev[j - 1];
+    let d1: f64 = dev[j];
+    let mut w: f64 = if d1 == d0 { 0.0 } else { (delta - d0) / (d1 - d0) };
+    w = w.clamp(0.0, 1.0);
+    let lkc: f64 = lk[j - 1] + w * (lk[j] - lk[j - 1]);
+    let lec: f64 = e_vec[j - 1].ln() + w * (e_vec[j].ln() - e_vec[j - 1].ln());
+    let mut k_new: Vec<f64> = k_vec[..j].to_vec();
+    let mut e_new: Vec<f64> = e_vec[..j].to_vec();
+    k_new.push(lkc.exp());
+    e_new.push(lec.exp());
+    let kc: f64 = lkc.exp();
+    (k_new, e_new, n - j, true, kc)
 }
 
 /// Lector sin piso absoluto: descarta puntos no finitos o no positivos
@@ -198,7 +220,7 @@ fn main() {
             for i in 0..n_points {
                 let ratio: f64 = (k_max / k_min).powf(i as f64 / (n_points as f64 - 1.0));
                 k[i] = k_min * ratio;
-                e[i] = pope_spectrum(k[i], 1.0, 0.01, 1.5, 5.2);
+                e[i] = pope_spectrum(k[i], 1.0, 0.01, 1.5, 2.25);
             }
             (k, e, "Sintetico (Pope)")
         }
@@ -211,8 +233,9 @@ fn main() {
     let (k_rel, e_rel) = truncate_tail(&k_vec, &e_vec, rel_thresh);
     let g_rel: f64 = compute_spectral_curvature(&k_rel, &e_rel);
 
-    // --- Corte por pendiente [recomendado] ------------------------------
-    let (k_sl, e_sl) = truncate_by_slope(&k_vec, &e_vec, delta);
+    // --- Corte por pendiente con interpolacion [recomendado] ------------
+    let (k_sl, e_sl, _n_elim, ok_sl, k_corte) =
+        truncate_by_slope_interp(&k_vec, &e_vec, delta, SLOPE_K41);
     let g_sl: f64 = compute_spectral_curvature(&k_sl, &e_sl);
 
     println!("Fuente               : {}", source);
@@ -231,11 +254,12 @@ fn main() {
         k_rel.len()
     );
     println!(
-        "G*[u] corte pendiente: {:.4}   (delta={:.2}, k_max={:.3e}, {} pts)  [RECOMENDADO]",
+        "G*[u] corte pendiente: {:.4}   (delta={:.2}, k_max={:.3e}, {} pts, interp, ok={})  [RECOMENDADO]",
         g_sl,
         delta,
-        k_sl.last().unwrap(),
-        k_sl.len()
+        k_corte,
+        k_sl.len(),
+        ok_sl
     );
 
     if let Ok(mut file) = File::create("sddf_history.log") {

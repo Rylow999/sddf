@@ -1,1 +1,5 @@
 __pycache__/
+codigo/rust/target/
+datos/jhtdb_cache/
+codigo/sddf_history.log
+.venv/
