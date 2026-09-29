@@ -279,8 +279,100 @@ cd .. && python3 tests/test_estimador_principal.py
 - OpenAI (2026). *Navier-Stokes solution* (anuncio interno, blowup forzado).
   openai.com/index/navier-stokes-solution.
 
+## 13. Validación con DNS real (v3.3–v3.4, septiembre 2026)
+
+**Hasta acá, todos los espectros del paper eran sintéticos.** En v3.3/v3.4
+se corrigió eso con el box periódico completo de JHTDB.
+
+### 13.1 El intento que enseñó qué NO usar
+
+El mirror HuggingFace de ArielLubonja (`isotropic1024-coarse`) resultó NO
+ser la malla coarse completa, sino un **sub-cubo de 256³ a resolución fina**
+(un cuarto del dominio 2π³ en cada eje). El test de periodicidad lo confirmó
+sin ambigüedad: el salto entre la última y la primera capa del bloque es
+300-360 veces mayor que entre capas internas. Consecuencias:
+
+- No es periódico → FFT con fuga espectral (cola espuria ∝ k⁻²).
+- Contiene ~1 escala integral (L_int=1.376 vs lado 1.571) → sin muestra
+  estadística en k bajo.
+- Sus 10 timesteps son casi idénticos (dt=0.002 ≪ T_L=1.99) → promediarlos
+  no aporta.
+- Resultó útil como contraejemplo: validó el espaciado (ε por gradientes,
+  estimador independiente de las unidades de k: 0.125 con dx=2π/1024 vs
+  0.008 con 2π/256 → gana el fino sin ambigüedad). Salida:
+  `datos/17_dns_real_resumen.txt`.
+
+### 13.2 El box periódico completo, con estadística
+
+Fuente definitiva: mirror **thuerey-group/jhtdb-isotropic-turbulence-1024**
+(TUM), dataset `coarse_t420.hdf5` con `sims/sim0/420` shape (1024,1024,1024,4)
+float16 — el **dominio completo periódico**. Leído remoto por HTTP range:
+8 bloques de 256³ en las esquinas del box (~128 MB c/u, chunks contiguos de
+64³), cacheados localmente (`datos/jhtdb_cache/blocks/`). Pipeline en
+`codigo/exp_dns_real_fullbox.py`.
+
+**Chequeos independientes que el dato pasa** (validan que medimos lo que
+creemos):
+
+- ε = 2ν⟨s_ij s_ij⟩ por gradientes (NO usa unidades de k):
+  **0.0891 ± 0.0021 vs documentado 0.0928 → 0.96×**.
+- Convergencia de ε espectral a k≤128: 0.93× (Hanning) / 1.01× (crudo);
+  la cola k>128 no es confiable (ruido float16 + fuga residual).
+
+**Resultados SDDF sobre DNS real** (Re_λ=433, kη = k·0.00287):
+
+- Núcleo inercial k∈[8,64] (kη 0.02-0.18): ajuste log-log
+  **q = 1.60 ± 0.02** (−4% vs 5/3 — lo esperado a este Re).
+- Incluyendo hasta k≤128 (inicio de disipación): q sube a 1.76-1.92.
+  **La ventana domina el observable.**
+- **〈s²〉 NO es invariante de ventana**: 2.1-3.3 según dónde se corte.
+
+### 13.3 El patrón de la ley ρ, confirmado en DNS
+
+Es el hallazgo conceptual: **cantidades restringidas a una ventana
+declarada son estables; G_total no**. En datos reales se confirma lo
+que el experimento multi-observador de `rho-law` mostraba: lo que es
+invariante entre observadores son las cantidades ancladas al instrumento
+declarado, no la integral sin ventana.
+
+### 13.4 Lección metodológica: el detector falla en datos reales
+
+El detector automático (corte por |s(k)+5/3|>δ sobre la pendiente
+puntual) fue calibrado con espectros sintéticos suaves. Con el ruido
+concha-a-concha del espectro real (sem ~10-15% en k bajo):
+
+- El detector puntual se dispara y corta en 3-8 puntos (ventana inservible).
+- `inertial_window` de dos lados devuelve ok=False (no encuentra rango).
+
+**Corrección (v3.4)** — `sddf_core.smoothed_slope` +
+`inertial_window_smoothed`: regresión lineal en ventana móvil de conchas,
+puntos de borde excluidos (su ventana recortada hace la pendiente no
+confiable). Validación cruzada (`exp_detector_suavizado.py`):
+
+| caso | puntual | w=5 | w=9 | w=11 |
+|------|---------|-----|-----|------|
+| sintético sin ruido | ok (q=1.738) | ok (igual) | ok (igual) | ok (igual) |
+| sintético ruido 1% | **falla** (k=1.05) | falla | ok (q=1.78) | ok |
+| sintético ruido 3% | falla | falla | falla | ok (span 2.3) |
+| **DNS real** (8 bloques) | **falla** | **ok: k∈[12,56], q=1.53** | sobresuaviza | sobresuaviza |
+
+Trade-off: w chico no mata el ruido; w grande borra señal. Recomendación:
+w=5 para DNS bineado en conchas con varios bloques; w=9-11 para más ruido.
+
+## 14. Estado de los pendientes (resumen v3.2–v3.4)
+
+| Pendiente (del README v3.1) | Estado |
+|------------------------------|--------|
+| Null model del periodograma de Migdal | **Resuelto (v3.2)** — 500 nulos, umbral real amp∈(0.005, 0.02) |
+| Sincronizar Rust con Python | **Resuelto (v3.2)** — truncado idéntico al dígito |
+| Validación con DNS real | **Resuelto (v3.3)** — box TUM, chequeos independientes |
+| Detector sobre pendiente suavizada | **Resuelto (v3.4)** — lección del contraste con DNS |
+| Pushear commits locales a origin | pendiente (decisión del autor) |
+| Paper 2D | bloqueado por datos de entrada (igual que antes) |
+
 ---
 
-*Historial completo de auditoría (v1→v2→v3): ver `AUDITORIA.md`.*
+*Historial completo de auditoría (v1→v2→v3): ver `AUDITORIA.md`.
+Historial v3.2–v3.4: ver `CHANGELOG.md`.*
 
 *Per Aspera, Ad Astra.*
