@@ -110,13 +110,56 @@ Cambios derivados de la auditoría externa, validados con tests
   interpolación lineal idéntica a la de Python (mismo k_corte, mismo G* al
   dígito sobre `spectrum_Re_1000.csv`) y el fallback sintético usa
   Pao+β=2.25 (quimera acordada) en vez de Pope 5.2.
-- **Validación con DNS real**: **EN CURSO (2026-09-22)**,
-  `codigo/exp_dns_real_isotropo.py` baja el snapshot público JHTDB
-  isotropic1024coarse (256³, 1 timestep, Re_λ≈433) del mirror de
-  HuggingFace, calcula E(k) por FFT + conchas |k| y corre el pipeline.
-  Resultados en `datos/espectros/spectrum_jhtdb_isotropic1024coarse_t0.csv`
-  y `datos/17_dns_real_resumen.txt`. Próximos pasos: promediar los 10
-  timesteps y bajar el canal4094 (Re_τ≈5200) para inercial largo.
+- **Validación con DNS real**: ~~**EN CURSO**~~ **HECHO (2026-09-22/28)**
+  con el box **periódico completo** (no el sub-cubo del mirror ArielLubonja,
+  que resultó no confiable — ver abajo). Fuentes y resultados:
+  - `codigo/exp_dns_real_fullbox.py` — versión final: lee REMOTO (HTTP range)
+    el `coarse_t420.hdf5` del mirror TUM
+    (`thuerey-group/jhtdb-isotropic-turbulence-1024`, dominio completo
+    1024³ float16), baja 8 bloques de 256³ de las esquinas del box
+    (cacheados en `datos/jhtdb_cache/blocks/`), promedia espectros y corre
+    el pipeline SDDF. Resultados en
+    `datos/espectros/spectrum_jhtdb_box_{hanning,crudo}.csv` y
+    `datos/18_dns_real_box_resumen.txt`.
+  - `codigo/exp_dns_real_isotropo.py` — versión con el mirror ArielLubonja
+    (256³ × 10 timesteps): sirve como contraejemplo del sub-cubo y para
+    validar el espaciado (eps por gradientes).
+  - `codigo/download_jhtdb.sh` — descarga robusta con resume (curl -C -,
+    http1.1, reintentos), escrita cuando el mirror iba a 85 kB/s.
+
+  **Chequeos independientes que pasan** (validan datos y unidades de k):
+  - ε = 2ν⟨s_ij s_ij⟩ por gradientes (NO depende de unidades de k):
+    0.0891 ± 0.0021 vs documentado 0.0928 → **0.96×**. El espaciado
+    alternativo 2π/256 daría 0.008 (0.08×) → descartado sin ambigüedad.
+  - u_rms por bloque: [0.617, 0.668, 0.564] vs documentado 0.681.
+  - Convergencia de ε espectral: 0.93× (hanning) / 1.01× (crudo) a k≤128;
+    la cola k>128 no es confiable (ruido float16 + fuga residual).
+
+  **Resultados SDDF sobre DNS real** (kη = k·0.00287):
+  - Núcleo inercial k∈[8,64] (kη 0.02-0.18): ajuste log-log da
+    **q = 1.60 ± 0.02**, ~4% por debajo de K41 (5/3=1.667). Incluyendo
+    k≤128 (inicio de disipación) q sube a 1.76-1.92 — la ventana importa.
+  - **〈s²〉 NO es invariante de ventana en datos reales**: 2.1-3.3 según
+    dónde se corte. Confirma en DNS real el patrón de la ley ρ: lo estable
+    son cantidades restringidas a una ventana declarada, no G_total.
+  - **El detector automático delta=0.5 falla en datos reales**: calibrado
+    en espectros sintéticos suaves, se dispara con el ruido
+    concha-a-concha del espectro real y corta en 3-8 puntos; el detector
+    de dos lados `inertial_window` no encuentra ventana (ok=False). Para
+    datos reales hace falta pendiente suavizada (ventana de 5 conchas):
+    con suavizado, la pendiente en k=16-24 da −1.69/−1.65, casi exactamente
+    K41.
+  - **Pendiente abierta**: incorporar detección de ventana sobre pendiente
+    suavizada (no puntual) en `sddf_core` — esa es la lección metodológica
+    del contraste con datos reales.
+
+  **Por qué el mirror ArielLubonja no alcanzó** (lección aprendida):
+  su snapshot es UN sub-cubo de 256³ = un cuarto de caja, NO periódico
+  (salto de borde 300-360× el interior → fuga espectral), y contiene ~1
+  escala integral (L_int=1.376 vs lado 1.571) → sin muestra estadística en
+  k bajo. Sus 10 timesteps son casi idénticos (dt=0.002 ≪ T_L=1.99):
+  promediarlos no aporta. `datos/17_dns_real_resumen.txt` documenta el
+  contraejemplo completo.
 
 ## Conexión con la ley ρ (RHO_LAW)
 

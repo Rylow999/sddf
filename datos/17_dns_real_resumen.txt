@@ -1,0 +1,33 @@
+========================================================================
+SDDF sobre DNS REAL — JHTDB isotropic1024coarse (mirror HF)
+========================================================================
+snapshot: 256^3 SUB-CUBO, 10 timesteps promediados
+ventana de analisis: crudo
+
+IDENTIDAD DEL DATO (verificada, no asumida):
+  attrs H5: dataset='isotropic1024coarse', indices 1..256 (paso 1) en x,y,z; t = 1..10
+  dx = 2pi/1024 ; 256 puntos => lado del sub-cubo = pi/2 (=1/4 del dominio 2pi)
+  TEST DE PERIODICIDAD: salto en el borde / salto interior ~ 300-360x  => NO periodico => SUB-CUBO
+
+PARAMETROS DOCUMENTADOS (JHTDB README-isotropic.pdf):
+  nu=0.000185, eps=0.0928, eta=0.00287, u'=0.681, E_tot=0.695, Re_lambda=433
+
+CHEQUEO DEL ESPECTRO:
+  k_min=4.00, k_Nyq=512
+  eps_estimado del espectro = 0.2852  (oficial 0.0928)  => 3.07x
+  ^ el integrador k^2 E dk esta dominado por la cola de k alto, que en un sub-cubo no periodico esta contaminada por
+    fuga espectral (~k^-2 por la discontinuidad en las caras). Comparar con la variante --ventana para medir esa sensibilidad.
+
+RESULTADO SDDF (invariante bajo reescalado de k):
+  corte delta=0.5: k en [4.00, 30.29] (8 puntos de concha, interp ok=True)
+  ventana efectiva = 2.024 nats
+  G* = 5.6796
+  <s^2> = G/ln(k_max/k_min) = 2.8055   (K41 puro: 25/9 = 2.7778)
+  q_efectivo = sqrt(<s^2>) = 1.6750   (K41: 5/3 = 1.6667)
+  sesgo vs K41 = +0.50 %
+
+CAVEATS (honestos):
+  1. Sub-cubo no periodico: la FFT sufre fuga; el extremo de k bajo (k~4-20) NO es confiable y el de k alto tampoco.
+  2. La ventana inercial resultante es corta (~2 nats) por el corte temprano del detector de pendiente.
+  3. Para un espectro limpio del dominio completo hace falta promediar muchos sub-cubos (o el campo entero, inviable por ancho de banda: el mirror va a ~100 kB/s).
+  4. u' y E_tot del sub-cubo son consistentes con lo documentado => la ESCALA de velocidades esta bien; la inconsistencia esta en la cola del espectro, no en los datos.

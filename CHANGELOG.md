@@ -1,6 +1,35 @@
 # Changelog
 
-## v3.2 (2026-09-22) — null model Migdal + sync Rust + DNS real
+## v3.3 (2026-09-22/28) — validación con DNS real (box completo, con estadística)
+
+### Added
+- `codigo/exp_dns_real_fullbox.py`: espectro E(k) de DNS REAL sobre el
+  dominio periódico completo con muestra estadística (8 bloques de 256³
+  leidos remoto por HTTP range del mirror TUM
+  `thuerey-group/jhtdb-isotropic-turbulence-1024`, cacheados localmente).
+  Chequeos independientes del dato, convergencia de ε espectral, ajustes
+  log-log por ventanas y sensibilidad de la ventana del observable SDDF.
+  Salidas: `datos/espectros/spectrum_jhtdb_box_{hanning,crudo}.csv`,
+  `datos/18_dns_real_box_resumen.txt`.
+- `codigo/download_jhtdb.sh`: descarga robusta con resume.
+- `codigo/exp_dns_real_isotropo.py`: pipeline sobre el mirror ArielLubonja
+  (256³ × 10 timesteps) — contraejemplo del sub-cubo no periódico.
+
+### Resultados sobre DNS real (Re_λ=433, kη=k·0.00287)
+- Chequeos: ε por gradientes 0.0891±0.0021 (0.96× del documentado);
+  ε espectral converge a 0.93-1.01× en k≤128; cola k>128 no confiable.
+- Núcleo inercial k∈[8,64]: **q = 1.60 ± 0.02** (−4% vs K41). Con k≤128
+  (inicio de disipación): q = 1.76-1.92 — la ventana domina el observable.
+- 〈s²〉 NO es invariante de ventana en datos reales (2.1-3.3): confirma en
+  DNS el patrón de la ley ρ (lo estable es lo restringido a ventana
+  declarada, no G_total).
+- **El detector de ventana automático (delta=0.5, calibrado en sintéticos)
+  falla en espectros reales**: corta en 3-8 puntos por el ruido
+  concha-a-concha; `inertial_window` devuelve ok=False. Lección
+  metodológica: detectar ventana sobre pendiente SUAVIZADA, no puntual.
+  Pendiente abierta incorporarlo a `sddf_core`.
+
+## v3.2 (2026-09-22) — null model Migdal + sync Rust + DNS real WIP
 
 ### Added
 - `codigo/exp_null_model_periodograma.py`: test de calibración con 500
