@@ -67,6 +67,44 @@ para las limitaciones abiertas (recuperación de `spectrum_grueso.csv` y
 recálculo del paper 2D, ambos bloqueados por falta de datos de entrada, no
 de método).
 
+## Novedades v3.4 (2026-09-28) — detector sobre pendiente suavizada
+
+Lección metodológica del contraste con DNS real (v3.3): el detector
+puntual (`local_slope`) se dispara con el ruido concha-a-concha del
+espectro real (sem ~10-15% a k bajos) y corta en 3-8 puntos.
+
+### Added
+
+- `sddf_core.smoothed_slope(k, e, window=5)`: pendiente log-log local
+  SUAVIZADA — regresión lineal en una ventana móvil de `window` conchas
+  centrada en cada punto. Bordes con ventana recortada (asimétrica).
+- `sddf_core.inertial_window_smoothed(k, e, delta, s_ref, window)`: detector
+  de rango inercial de dos lados sobre la pendiente suavizada. Los puntos
+  de borde (window//2 a cada lado) **no participan de la detección**
+  (ventana recortada → pendiente no confiable).
+- `codigo/exp_detector_suavizado.py`: validación cruzada sintético (ruido
+  creciente 0-10%) + DNS real. Salida `datos/19_detector_suavizado.csv`.
+- `tests/test_detector_suavizado.py`: 4 tests de regresión.
+
+### Resultados (trade-off real del ancho de ventana)
+
+| caso | puntual | w=5 | w=9 | w=11 |
+|------|---------|-----|-----|------|
+| sintético sin ruido | ok (q=1.738) | ok (igual) | ok (igual) | ok (igual) |
+| sintético ruido 1% | **falla** (corta en k=1.05) | falla | ok (q=1.78, span 4.9) | ok (q=1.78) |
+| sintético ruido 3% | falla | falla | falla | ok (span 2.3) |
+| **DNS real** (8 bloques) | **falla** (ok=0) | **ok: k∈[12,56], q=1.53** | sobresuaviza (ok=0) | sobresuaviza (ok=0) |
+
+- Recomendación: w=5 para espectros de DNS conbineado en conchas |k|
+  (~2% de sem en el promedio de 8 bloques); w=9-11 para espectros con
+  más ruido o menos bloques promediados.
+- El detector suavizado es **conservador por diseño** en el borde bajo
+  (excluye los primeros window//2 puntos): para el grid del box
+  (k=4n) eso significa k_low≥12 con w=5. Honestidad del método: no
+  inventa ventana donde no hay evidencia local suficiente.
+- El puntual queda para espectros analíticos/ajustados (donde funcionó
+  siempre); no está deprecado.
+
 ## Novedades v3.1 (2026-09-17) — fixes post-auditoría
 
 Cambios derivados de la auditoría externa, validados con tests
@@ -149,9 +187,12 @@ Cambios derivados de la auditoría externa, validados con tests
     datos reales hace falta pendiente suavizada (ventana de 5 conchas):
     con suavizado, la pendiente en k=16-24 da −1.69/−1.65, casi exactamente
     K41.
-  - **Pendiente abierta**: incorporar detección de ventana sobre pendiente
-    suavizada (no puntual) en `sddf_core` — esa es la lección metodológica
-    del contraste con datos reales.
+  - **Pendiente abierta**: ~~incorporar detección de ventana sobre pendiente
+    suavizada (no puntual) en `sddf_core`~~ **RESUELTO (v3.4)**:
+    `sddf_core.smoothed_slope` (regresión móvil) +
+    `sddf_core.inertial_window_smoothed` (dos lados, bordes excluidos),
+    validados en `tests/test_detector_suavizado.py` y
+    `datos/19_detector_suavizado.csv`. Ver abajo "Novedades v3.4".
 
   **Por qué el mirror ArielLubonja no alcanzó** (lección aprendida):
   su snapshot es UN sub-cubo de 256³ = un cuarto de caja, NO periódico

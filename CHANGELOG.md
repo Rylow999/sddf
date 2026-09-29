@@ -1,5 +1,32 @@
 # Changelog
 
+## v3.4 (2026-09-28) — detector sobre pendiente suavizada
+
+Lección del contraste con DNS real (v3.3): el detector puntual se dispara
+con el ruido concha-a-concha del espectro real y corta en 3-8 puntos.
+
+### Added
+- `sddf_core.smoothed_slope(k, e, window=5)`: pendiente log-log suavizada
+  (regresión lineal en ventana móvil de conchas, bordes asimétricos).
+- `sddf_core.inertial_window_smoothed(k, e, delta, s_ref, window)`:
+  detector de dos lados sobre la pendiente suavizada; los puntos de borde
+  no participan de la detección (ventana recortada → no confiable).
+- `codigo/exp_detector_suavizado.py`: validación cruzada sintético (ruido
+  0-10%) + DNS real → `datos/19_detector_suavizado.csv`.
+- `tests/test_detector_suavizado.py`: 4 tests de regresión (K41 exacto en
+  interior, equivalencia con el puntual sin ruido, puntual falla/suavizado
+  encuentra con ruido 1%, DNS real detectado con w=5).
+
+### Resultados
+- Sintético sin ruido: suavizado y puntual equivalentes (q≈1.738).
+- Sintético ruido 1%: puntual falla (corta en k=1.05); suavizado w=9
+  encuentra la ventana completa (q=1.78, span 4.9 nats).
+- DNS real: puntual falla (ok=0); suavizado w=5 encuentra k∈[12,56]
+  (q=1.53, span 1.54 nats); w=9/11 sobresuavizan (ok=0). Trade-off real:
+  w chico no mata el ruido, w grande borra señal.
+- Recomendación: w=5 para DNS bineado en conchas (sem~2% con 8 bloques);
+  w=9-11 para más ruido. El puntual queda para espectros analíticos.
+
 ## v3.3 (2026-09-22/28) — validación con DNS real (box completo, con estadística)
 
 ### Added

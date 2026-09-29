@@ -295,3 +295,77 @@ def inertial_window(k, e, delta=0.5, s_ref=S_K41):
             break
     ok = k_high > k_low * 3  # pedimos al menos 1 década de rango inercial
     return float(k_low), float(k_high), ok
+
+
+# ---------------------------------------------------------------------------
+# Detector de rango inercial sobre PENDIENTE SUAVIZADA (leccion del
+# contraste con DNS real, v3.3): el detector puntual (local_slope) se
+# dispara con el ruido concha-a-concha del espectro real (E medido por
+# bineado en conchas |k| tiene sem ~ 10-15% a k bajos) y corta en 3-8
+# puntos. Sobre la pendiente suavizada (regresion lineal en una ventana
+# movil de conchas), el mismo umbral encuentra el rango correcto.
+# ---------------------------------------------------------------------------
+
+def smoothed_slope(k, e, window=5):
+    """
+    Pendiente log-log local suavizada: regresion lineal en una ventana
+    movil de `window` conchas centrada en cada punto (en (ln k, ln e)).
+    En los bordes la ventana se recorta (asimetrica) en vez de descartar
+    puntos. `window` impar recomendado; si es par se le suma 1.
+
+    Devuelve un array del mismo largo que k.
+    """
+    k = np.asarray(k, float)
+    e = np.asarray(e, float)
+    if window % 2 == 0:
+        window += 1
+    n = len(k)
+    half = window // 2
+    lk, le = np.log(k), np.log(e)
+    s = np.empty(n)
+    for i in range(n):
+        j0, j1 = max(0, i - half), min(n, i + half + 1)
+        # ventana minima de 2 puntos para que la regresion exista
+        if j1 - j0 < 2:
+            j1 = min(n, j0 + 2)
+        s[i] = np.polyfit(lk[j0:j1], le[j0:j1], 1)[0]
+    return s
+
+
+def inertial_window_smoothed(k, e, delta=0.5, s_ref=S_K41, window=5):
+    """
+    Detector de rango inercial de DOS lados sobre pendiente suavizada.
+    Identica semantica que inertial_window pero con smoothed_slope:
+
+    - k_low: primer k con |s_suav(k) - s_ref| <= delta desde k[0]
+    - k_high: ultimo k good antes de 5 malos seguidos (region disipacion)
+
+    OJO (efecto borde): los primeros y ultimos `window//2` puntos tienen la
+    ventana movil RECORTADA (asimetrica) => su pendiente suavizada no es
+    confiable y no participan de la deteccion. Devuelven good=False.
+
+    ok=True si la ventana cubre al menos 1 decada (factor 3).
+    """
+    k = np.asarray(k, float)
+    e = np.asarray(e, float)
+    if len(k) < 6:
+        return k[0], k[-1], False
+    half = window // 2
+    s = smoothed_slope(k, e, window=window)
+    good = np.abs(s - s_ref) <= delta
+    good[:half] = False          # borde izquierdo: ventana recortada
+    good[-half:] = False         # borde derecho: idem
+    k_high = k[-1]
+    # busco k_high desde el primer punto NO-borde: los puntos de borde no
+    # participan (su ventana movil esta recortada)
+    for i in range(half, len(k) - 4):
+        if not np.all(good[i:i + 5]):
+            k_high = k[i]
+            break
+    k_low = k[0]
+    for i in range(half, len(k)):
+        if good[i]:
+            k_low = k[i]
+            break
+    ok = k_high > k_low * 3
+    return float(k_low), float(k_high), ok
