@@ -1,0 +1,27 @@
+Analisis DNS 2D propia — ventana DECLARADA k=[6,20] (a priori, igual en todo nu)
+El detector automatico falla a esta resolucion (ruido concha, leccion v3.4)
+
+nu=0.0007: G=29.9276  q=-5.1754  (n=13 conchas)
+nu=0.0005: G=29.2278  q=-5.0036  (n=13 conchas)
+nu=0.0003: G=24.4148  q=-4.5712  (n=13 conchas)
+
+a = dG*/dln(1/nu) = -6.7441
+q medido (finite-Re): -5.0036  -> q^2*gamma(=1/2) = 12.5180
+ideal asintotico: q=3 -> a = 9/2 = 4.5
+
+Migdal sobre el decay propio (14 tiempos, ventana declarada):
+  t=0.020: score=7.155
+  t=0.039: score=7.124
+  t=0.076: score=7.069
+  t=0.149: score=6.952
+  t=0.291: score=6.584
+  t=0.568: score=4.768
+  t=1.109: score=12.657
+  t=120.000: score=6.377
+  t=16.118: score=6.202
+  t=2.165: score=21.906
+  t=31.472: score=11.954
+  t=4.227: score=6.415
+  t=61.455: score=6.223
+  t=8.254: score=8.040
+  mediana=7.010 max=21.906 (rango de scores del null sintetico: med 18.7)

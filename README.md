@@ -67,6 +67,32 @@ para las limitaciones abiertas (recuperación de `spectrum_grueso.csv` y
 recálculo del paper 2D, ambos bloqueados por falta de datos de entrada, no
 de método).
 
+## Novedades v3.8 (2026-10-02) — DNS 2D propia: solver + protocolo a N=128
+
+- `codigo/exp_dns2d.py`: **DNS 2D propia** (solver pseudo-espectral estándar
+  Boffetta-Ecke: de-alias 2/3, RK2, disipación+fricción exactas por factor de
+  integración, forzado constante físico F0 en shells k∈[3,5]). Tres lecciones
+  de física duras documentadas en el código: (1) ψ̂ = +ŵ/k² — el signo negativo
+  invierte u,v y revierte el flujo de enstrofia; (2) la amplitud del forzado es
+  FÍSICA (Parseval: |f|_rms = f0 exige Σ|fk|² = (f0·N²)²) — con fk unit-norm el
+  forzado era ~1e-5 y la cascada jamás llenaba el espectro; (3) χ ≈ f0² (no 1):
+  k_d real ~ (f0²/ν³)^{1/6} — Re_sat ~ 9400 en N=128.
+- `codigo/exp_dns2d_analisis.py`: análisis con **ventana declarada a priori**
+  k∈[6,20] (misma en todo ν). Resultado: G* ∈ [24.4, 29.9] con a = dG*/dln(1/ν)
+  = **−6.74, signo NEGATIVO** contra la predicción +4.5 — y el diagnóstico es
+  el hallazgo: la ventana fija atrapa distinto roll-off disipativo en cada ν
+  (kd real 23.7→33.7 roza la ventana) — el **artefacto de contaminación de
+  ventana**, el mismo que el paper del documento marca como "corte sin ventana
+  física definida". A N=128 (43 conchas, rango inercial ~1.7 decadas) el
+  protocolo del corte por pendiente + k_c móvil NO tiene separación para
+  aplicarse: el "G*≈3634 imposible" del paper 2D queda explicado estructuralmente
+  con nuestro propio dato.
+- **Migdal sobre el decay propio** (14 tiempos, mismo score): mediana 7.01, muy
+  por debajo del null sintético (18.7) — **tercer negativo honesto**: la firma
+  log-periódica no emerge en decay 2D ni en DNS 3D real (v3.7). Consistente.
+- Salida: `datos/espectros_2d/` (3 forzado + 14 decay),
+  `datos/24_dns2d_analisis.csv` + resumen.
+
 ## Novedades v3.7 (2026-10-02) — Migdal sobre DNS real: resultado negativo honesto
 
 - `codigo/exp_migdal_real.py`: el test log-periódico de Migdal aplicado a los
