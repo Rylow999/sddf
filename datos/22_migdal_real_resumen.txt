@@ -1,0 +1,9 @@
+Test log-periodico de Migdal sobre espectros JHTDB reales (bootstrap E_sem)
+N_BOOT=600, window=5, delta=0.5, s_ref=-5/3
+
+[spectrum_jhtdb_box_hanning.csv] window k=[12.0,56.0] span=1.54 | score=22.490 w=8.00 | null med=18.746 q95=92.412 | p=0.4500
+[spectrum_jhtdb_box_promedio.csv] window k=[12.0,56.0] span=1.54 | score=22.490 w=8.00 | null med=18.746 q95=92.412 | p=0.4500
+[spectrum_jhtdb_iso1024_promedio.csv] window k=[12.0,56.0] span=1.54 | score=47.687 w=8.00 | null med=45.073 q95=56.911 | p=0.4333
+
+Lectura: p_empirico < 0.05 => estructura log-periodica sobre el ruido
+concha-a-concha. p alto => no detectable a esta resolucion (negativo honesto).

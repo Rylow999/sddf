@@ -1,0 +1,4 @@
+espectro,k_low,k_high,span_ln,n_shells,score_obs,omega_obs,null_med,null_q95,p_empirico
+spectrum_jhtdb_box_hanning.csv,12.0,56.0,1.54,12,22.49,8.0,18.746,92.412,0.45
+spectrum_jhtdb_box_promedio.csv,12.0,56.0,1.54,12,22.49,8.0,18.746,92.412,0.45
+spectrum_jhtdb_iso1024_promedio.csv,12.0,56.0,1.54,12,47.687,8.0,45.073,56.911,0.43333333333333335

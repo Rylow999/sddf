@@ -67,6 +67,22 @@ para las limitaciones abiertas (recuperación de `spectrum_grueso.csv` y
 recálculo del paper 2D, ambos bloqueados por falta de datos de entrada, no
 de método).
 
+## Novedades v3.7 (2026-10-02) — Migdal sobre DNS real: resultado negativo honesto
+
+- `codigo/exp_migdal_real.py`: el test log-periódico de Migdal aplicado a los
+  espectros JHTDB **reales** cacheados (box 256³ e isotrópico 1024³), con el
+  null honesto para datos reales: **bootstrap de la incertidumbre por concha**
+  (E_sem del CSV, N_BOOT=600). Resultado: **no detectable** — box: score 22.5
+  (null med 18.7, q95 92.4, p=0.45); iso1024: score 47.7 (null med 45.1, q95
+  56.9, p=0.43). Además ω_obs=8.00 cae en el BORDE de la grilla Ω∈[0.3,8]:
+  firma del artefacto de detrending cúbico, no señal. Nota honesta: los dos
+  espectros box son bit a bit idénticos (mismo md5) — el test tuvo 2 espectros
+  independientes, no 3. La calibración sintética (v3.2) queda reforzada; la
+  firma exige mayor rango inercial resuelto → motiva el 4096³.
+- Detalle metodológico: el null usa la E_sem medida (incertidumbre concha a
+  concha), no ruido sintético inyectado — es el contraste con el null del
+  bloque 14, que calibraba sobre espectros analíticos exactos.
+
 ## Novedades v3.6 (2026-09-29) — pipeline local del box completo + hypo documentado
 
 - `codigo/exp_dns_real_local35.py`: re-análisis del box JHTDB completo
