@@ -1,0 +1,8 @@
+DNS 2D propia: cascada de enstrofia + decay (Migdal)
+N=128, k_f=(3, 5), dt=0.001, T_sat=200, alpha=0.02, dealias=2/3
+
+nu=0.0007 (k_d2D=37.8): G=None slope=None window=None via=plateau (1046s)
+nu=0.0005 (k_d2D=44.7): G=None slope=None window=None via=plateau (1057s)
+nu=0.0003 (k_d2D=57.7): G=None slope=None window=None via=plateau (1036s)
+a = dG*/dln(1/nu) = nan  (ideal asintotico 9/2 = 4.5 con q=3)
+decay: 14 tiempos, 0 scores migdal (626s)

@@ -3,3 +3,6 @@ codigo/rust/target/
 datos/jhtdb_cache/
 codigo/sddf_history.log
 .venv/
+# logs de experimentos de sesion (salida de consola)
+*.log
+
