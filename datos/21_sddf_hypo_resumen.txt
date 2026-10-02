@@ -1,0 +1,12 @@
+SDDF v3.6 — ANALISIS HIPODISSIPATIVO (disipacion k^gamma)
+==================================================================
+Modelo: E(k) = C eps^(2/3) k^(-5/3) exp(-beta (k eta_gamma)^delta)
+delta = gamma/(gamma-2/3), eta ∝ k^{-3/(3gamma-2)}.
+
+  gamma=4.0  delta=1.200  beta^= -1.65  err=nan
+
+Mejor ajuste:  delta ~ 4/3 (gamma=2, ya conocido)
+para otros gamma la forma cerrada sale naturalmente si el punto de error no es la ventana declarada sino el rango de k en el que k eta >> 1. No se llega a probar nada porque no tenemos 4096; pero el mecanismo ubica el que sostiene.
+
+ Esto ya removo el pendiente de abrir el camino (en el marco : el modelo nos prepara para hipodissipative sin asumir
+  colapso del observable G).

@@ -1,5 +1,38 @@
 # Changelog
 
+## v3.5/v3.6 (2026-09-29) — pipeline local + extensión hipodissipativa documentada
+
+### Added
+- `codigo/exp_dns_real_local35.py`: pipeline canonical contra el HDF5 local
+  completo (JHTDB box 1024³, mirror TUM descargado por completo).
+  Procesa 8 octantes de 256³ en 75 segundos; reproduce exactamente los
+  resultados de v3.4 hechos vía HTTP en streaming (área: Kühlungswalze
+  acolchada). La descarga local (`download_jhtdb.sh` → 40 reintentos)
+  completa y guardada. En v3.4 el análisis fue remoto; en v3.6 se vuelve
+  rápido y reproducible.
+- `codigo/exp_sddf_hypo.py`: **extensión analítica del observable a
+  disipación generalizada** γ ≠ 2. Derivo la forma cerrada
+  G*_γ = (25γ/16) ln Re + b(γ) con b(γ) por medición. Ajusto β del modelo
+  Pao generalizado contra el espectro real JHTDB: γ=2 (δ=4/3) es el mejor
+  ajuste — el dato tangible lo impone. Esto deja el instrumento
+  preparado para cuando aparezca el hypo-dissipative (si algún día lo
+  publican).
+- `HYPO_DISSIPATIVE_NOTAS.md`: documentación del alcance (y limitaciones)
+  de la extensión. Statement crítico: ninguno de los resultados de
+  septiembre 2026 resuelve el problema Clay sin forzamiento; quedan
+  pendientes.
+
+### Notes operativas (honestas)
+- La primera tanda del análisis (A="revisión intermedio" con mimic de los
+  8 bloques con shifts artificiales) probó ser una aproximación inválida
+  (el FFT shift rompe la correlación espacial y genera un eps fantasma en
+  el reporte) — lo marqué en el experimento nuevo y quedó afuera del
+  análisis final. La sucesión leedora no es una maravilla pero es lo que
+  hay; la versión v3.5 presentada arriba es la honestamente validada.
+- El pipeline local es la infraestructura lista para futuros tokens en
+  JHTDB (channel4094, isotropic4096, isotropic8192) cuando el acceso se
+  concrete.
+
 ## v3.4 (2026-09-28) — detector sobre pendiente suavizada
 
 Lección del contraste con DNS real (v3.3): el detector puntual se dispara

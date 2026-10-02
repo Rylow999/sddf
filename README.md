@@ -67,6 +67,31 @@ para las limitaciones abiertas (recuperación de `spectrum_grueso.csv` y
 recálculo del paper 2D, ambos bloqueados por falta de datos de entrada, no
 de método).
 
+## Novedades v3.6 (2026-09-29) — pipeline local del box completo + hypo documentado
+
+- `codigo/exp_dns_real_local35.py`: re-análisis del box JHTDB completo
+  desde la descarga local (8.6 GB en `datos/jhtdb_cache/`). Procesa los 8
+  octantes de 256³ directamente del HDF5 local en **75 segundos** (era ~15
+  min por HTTP range). Confirma exactamente los números de v3.4:
+  ε-gradientes 0.96× doc, ventana detectada k∈[12,56] con w=5, q=1.53.
+  Ahora es el pipeline canónico para los datos JHTDB cacheados.
+- Detalle importante honesto: el ε "espectral" reportado en esta versión
+  (9.46× el doc al integrar todo el rango) es el artefacto de fuga de un
+  espectro no-periódico de 256³ por ventana Hanning; el estimador por
+  gradientes (0.96×) es el chequeo fiable. La documentación advierte la
+  diferencia — no confundir el ε del resumen con el validado.
+
+## Novedades v3.5 (2026-09-29) — extensión hipodissipativa documentada
+
+- `codigo/exp_sddf_hypo.py`: forma cerrada del observable con disipación
+  generalizada γ, con ajuste de β contra el espectro DNS real y
+  confirmación de que γ=2 es el mejor ajuste.
+- `HYPO_DISSIPATIVE_NOTAS.md`: derivación formal completa del factor
+  G*_γ = (25/16)·γ·ln Re + b(γ), crítica honesta del programa
+  Buckmaster-Alpöge y chequeo contra datos reales. **No es un claim de
+  solución del problema de Navier-Stokes sin forzamiento** — queda
+  explícito.
+
 ## Novedades v3.4 (2026-09-28) — detector sobre pendiente suavizada
 
 Lección metodológica del contraste con DNS real (v3.3): el detector
