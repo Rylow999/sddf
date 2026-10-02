@@ -1,0 +1,5 @@
+SDDF v3.5 — box periódico completo (cache local, 8 bloques)
+============================================================
+eps gradientes = 0.0891 ± 0.0021 vs doc 0.0928 (0.96x)
+eps espectral = 0.8779 (9.46x doc)
+SDDF sobre ventana declarada (delta=0.5, w=5): ver tabla arriba
