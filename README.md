@@ -285,3 +285,55 @@ ley ρ del repo [`Rylow999/fhrr-rho-collapse`](https://github.com/Rylow999/fhrr-
 Ver `NOUS/RHO_LAW/` para el marco unificador trans-dominio.
 
 *Per Aspera, Ad Astra.*
+---
+
+# Auditoria bajo el Metodo Integral (2026-10-10)
+
+*Protocolo: DOCUMENTATION/METODO_INTEGRAL.md del vault (HORIZON).
+Estados obligatorios en cada pieza.*
+
+## Teoremas y verificaciones (estado honesto)
+
+| Pieza | Estado | Detalle |
+|---|---|---|
+| G*[u] = (25/12)ln(Re) + b(delta) | **PROBADO (forma cerrada)** | derivacion algebraica: (5/3)^2 * 3/4 = 25/12; verificado: error numerico 0.06-0.07% en Re=100..2000 (02_validacion), prefactor desviscosado 2.0832 vs exacto 2.0833 (05_prefactor, sesgo 2.6% medido y explicado: correccion finite-eta) |
+| Validacion DNS real (JHTDB) | **EVIDENCIA CONCORDANTE** (no prueba del teorema — el teorema es algebra; la DNS valida el regimen fisico) | q=1.60+-0.02 (k en [8,64]); epsilon por gradientes 0.96x del documentado; detector automatico REQUIERE pendiente suavizada (leccion v3.4: el instrumento define la ventana) |
+| Test de Migdal (log-periodico) | **NEGATIVO HONESTO x3** | sintetico: calibrado (amp 0.005 no pasa, 0.02 pasa p=0.01); DNS real: p=0.43-0.45 (bootstrap E_sem, omega en el BORDE de la grilla = firma de artefacto de detrending); decay 2D propio: 7.01 << null 18.7. Conclusion: la firma NO es detectable a estas resoluciones — resultado negativo, no fracaso: motiva 4096^3 |
+| DNS 2D propia | **EVIDENCIA + DIAGNOSTICO DE ARTEFACTO** | 3+14 espectros; fisica del solver verificada (signo psi, forzado fisico Parseval, chi~f0^2); N=128: ventana declarada contaminada (a=-6.74 negativo = roll-off disipativo desigual por nu) — el ARTEFACTO de ventana es el hallazgo: explica el "imposible" G*=3634 del paper 2D ajeno |
+| Extension hypo-disipativa | **PROBADO (forma cerrada) + nota honesta** | G*_gamma = (25/16)*gamma*ln(Re) + b(gamma); gamma=2 mejor ajuste; NO es claim de solucion de NS sin forzado (declarado) |
+| RPF/estimador principal | **PROBADO + TESTEADO** | tests remotos: todos pasan (intermitencia con beta correcto: error 2e-7; detector suavizado: DNS q=1.5262 vs K41 1.667) |
+
+## Metodos vs tabla del protocolo
+
+| Metodo usado | Clase | Veredicto |
+|---|---|---|
+| Forma cerrada (25/12) | teorema | **cierra** la parte algebraica — es el puente (A6) |
+| DNS real (JHTDB box) | simulacion (4.5) | evidencia concordante; NO prueba fisica universal |
+| Null model bootstrap | falsacion (5.x) | legitimo: calibra el instrumento antes de declarar |
+| Ventana declarada (v3.4+) | aut omata de credito (5.4) | correcto uso: restriccion exacta, no cierre |
+| Migdal sobre decay 2D | simulacion | negativo honesto, documentado |
+
+## Barreras identificadas
+
+1. **Barrera de resolucion (A5/4.3):** el rango inercial a N=128/256 no
+   sostiene el protocolo de corte por pendiente (43 conchas: ruido
+   concha-a-concha ~10-15%). El 4096^3 es la unica via de extension
+   (pendiente: token JHTDB).
+2. **Barrera de detrending:** el score de Migdal con detrending cubico
+   pone picos en el borde de la grilla omega (artefacto identificado) —
+   cualquier futuro test de log-periodicidad DEBE calibrar contra ese
+   artefacto primero (hecho aca: el null del bootstrap lo incluye).
+
+## Correcciones de etiquetas (nada baja de estante; dos precisiones)
+
+- El README deca "sólida" para la validacion DNS: se conserva, con la
+  precision del protocolo: el teorema es algebra (probado), la DNS es
+  evidencia concordante del regimen (no prueba adicional del teorema).
+- Los negativos de Migdal quedan formalmente etiquetados como **resultado
+  negativo** (tipo "medio": eliminan una familia de predicciones y
+  delimitan el regimen de validez del programa).
+
+## Pendientes con estado
+
+- Token JHTDB 4096^3: **pendiente externo** (Luciano).
+- Paper 2D con corte corregido: **bloqueado por datos de entrada** (declarado en v3; sin cambios).
