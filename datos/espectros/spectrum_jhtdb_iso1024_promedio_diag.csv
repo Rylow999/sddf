@@ -1,0 +1,16 @@
+metrica,valor
+archivo,datos/espectros/spectrum_jhtdb_iso1024_promedio.csv
+n_puntos,222
+k_min,4.0
+k_max,888.0
+k_low,12.0
+k_high,56.0
+rango_detectado,True
+q_raw,1.596806146057408
+q_corr,1.5964593347654794
+G,3.9261051756747913
+n_shells,12
+Re_efectivo,8535.270467860666
+G_predicho_25_12,18.858254841644918
+ratio_G,0.20819027044881824
+veredicto,DESVIACION del teorema — revisar espectro/artefactos

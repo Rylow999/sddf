@@ -337,3 +337,4 @@ Estados obligatorios en cada pieza.*
 
 - Token JHTDB 4096^3: **pendiente externo** (Luciano).
 - Paper 2D con corte corregido: **bloqueado por datos de entrada** (declarado en v3; sin cambios).
+cat: /tmp/cli_readme.txt: No such file or directory
