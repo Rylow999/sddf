@@ -1,45 +1,57 @@
-# SDDF — Curvatura espectral G[u]
+# SDDF — Spectral Curvature G[u]
 
-Extensión de **LOGOS**, dentro de [`vega-vault`](https://github.com/Rylow999/vega-vault).
+Extension of **LOGOS**, within [`vega-vault`](https://github.com/Rylow999/vega-vault).
 
-Estudio de la curvatura espectral
+Study of spectral curvature
 
-$$G[u] = \int \left(\frac{d\ln E(k)}{d\ln k}\right)^2 d\ln k$$
+$$G[u] = \int \left(rac{d\ln E(k)}{d\ln k}ight)^2 d\ln k$$
 
-como diagnóstico del rango inercial de Kolmogorov, con forma cerrada
-exacta, un estimador de exponente espectral corregido de sesgos, y un
-test de la firma log-periódica propuesta por Migdal (arXiv:2604.12207,
-arXiv:2511.02165) para turbulencia decayente.
+as a diagnostic of the Kolmogorov inertial range, with exact closed form, a bias-corrected spectral exponent estimator, and a test of the log-periodic signature proposed by Migdal (arXiv:2604.12207, arXiv:2511.02165) for decaying turbulence.
 
-**Resultado central:** $G^*[u] = \frac{25}{12}\ln Re + b(\delta) +
-\mathcal{O}(Re^{-1})$, con prefactor $25/12=(25/9)\cdot(3/4)$ — el cuadrado
-de la pendiente de Kolmogorov por el exponente de escala de $\eta\propto
-Re^{-3/4}$. No es un ajuste.
+**Key result:** $G^*[u] = rac{25}{12}\ln Re + b(\delta) + \mathcal{O}(Re^{-1})$, with prefactor $25/12=(25/9)\cdot(3/4)$ — the square of the Kolmogorov slope by the scaling exponent of $\eta\propto Re^{-3/4}$. Not a fit.
 
-## Estructura del repositorio
+## Overview
 
-```
-.
-├── README.md              este archivo
-├── AUDITORIA.md            historial completo de las rondas de revisión (v1→v2→v3→A7)
-├── CONTRASTE_MIGDAL_DNS.md guía completa para contrastar la firma de Migdal en DNS real
+The SDDF (Spectral Density Distribution Function) framework extends **LOGOS** within the `vega-vault` repository (see [Rylow999/vega-vault](https://github.com/Rylow999/vega-vault)). It provides tools for spectral curvature analysis, bias-corrected spectral exponent estimation, and log-periodic signature detection in decaying turbulence. The central observable $G[u]$ serves as a diagnostic of the Kolmogorov inertial range with exact closed-form theory and practical numerical estimation pipelines.
+
+## Repository structure
+
+```.
+├── README.md              this file
+├── AUDITORIA.md           complete history of review rounds (v1→v2→v3→A7)
+├── CONTRASTE_MIGDAL_DNS.md complete guide to contrast the Migdal signature in real DNS
 ├── paper/
-│   └── PAPER.md            documento consolidado con todos los resultados
+│   └── PAPER.md           consolidated document with all results
 ├── codigo/
-│   ├── sddf_core.py         nucleo numerico (lectura, pendiente local, truncados)
-│   ├── sddf_exact.py         formas cerradas analiticas
-│   ├── estimador_principal.py  estimador recomendado (q_corregido), API reutilizable
-│   ├── modelos_espectrales.py  parametrizaciones Pao / Pope / quimera / 2D
-│   ├── barrido_re_v3.py       genera los espectros CSV de datos/espectros/
-│   ├── sddf_completo.py       pipeline completo (regenera todos los CSV/PNG)
-│   └── rust/                  implementacion de referencia en Rust (compilada)
-├── datos/                  15 tablas de resultados + 27 espectros CSV (incluye spectrum_grueso.csv, recuperado)
-├── figuras/                 10 figuras (PNG)
+│   ├── sddf_core.py       core numerics (reading, local slope, truncation)
+│   ├── sddf_exact.py      closed-form analytic shapes
+│   ├── estimador_principal.py  recommended estimator (q_corrected), reusable API
+│   ├── modelos_espectrales.py  Pao / Pope / chimera / 2D parametrizations
+│   ├── barrido_re_v3.py   generates CSV spectra from data/spectra
+│   ├── sddf_completo.py   full pipeline (regenerates all CSV/PNG)
+│   └── rust/              reference implementation in Rust (compiled)
+├── datos/                 15 result tables + 27 spectral CSV files (includes spectrum_grueso.csv, recovered)
+├── figuras/               10 figures (PNG)
 └── tests/
-    └── test_estimador_principal.py   regresion contra el paper
+    └── test_estimador_principal.py   regression against the paper
 ```
 
-## Reproducir todo desde cero
+## Key results
+
+- **Closed-form theory:** $G^*[u] = rac{25}{12}\ln Re + b(\delta) + \mathcal{O}(Re^{-1})$, with $25/12 = (25/9)\cdot(3/4)$, derived from $(5/3)^2 \cdot 3/4$. Numerical verification shows 0.06-0.07% error across $Re=100..2000$, with prefactor desviscosado $2.0832$ vs exacto $2.0833$ (bias $2.6\%$ measured and explained via finite-$\eta$ correction).
+- **DNS validation (JHTDB box):** Evidence consistent with the theoretical regime: $q = 1.60 \pm 0.02$ for $k\eta \in [0.02, 0.18]$, $\sim 4\%$ below K41 ($5/3=1.667$). Including $k \leq 128$ (onset of dissipation) $q$ rises to $1.76	ext{--}1.92$ — the window matters.
+- **Bias-corrected spectral estimator:** The recommended `estimador_principal` provides $q_{corrected}$ with documented pipeline; validation on synthetic noise + DNS real confirms intermitency with correct $eta$: error $2	imes10^{-7}$.
+- **Spectral detector (smoothed):** The smoothed slope detector with two-sided inertial window is conservative by design: excludes $window/2$ border points, uses mobile regression (`smoothed_slope`), and validated against synthetic noise ($0	ext{--}10\%$) and DNS real. For DNS data with $\sim 2\%$ concha-to-concha SEM in 8-block averaging, $w=5$ is recommended; $w=9	ext{--}11$ for noisier spectra.
+- **Migdal log-periodic test: negative honest result.** Applied to real JHTDB data (box $256^3$, iso $1024^3$) and own DNS 2D decay: no detectable signature. Bootstrap null (600 bootstraps, concha uncertainty $E_{sem}$) gives $p=0.43	ext{--}0.45$, with $\omega_{obs}$ at the grid edge $\Omega\in[0.3,8]$, identifying the cubic detrending artifact. Synthetic calibration (v3.2) is reinforced; the signature requires greater inertial range resolution → motivates $4096^3$.
+- **Hypo-dissipative extension:** Closed-form observable with generalized dissipation $\gamma$: $G^*_\gamma = rac{25}{16}\gamma\ln Re + b(\gamma)$. $\gamma=2$ is the best fit. Explicitly not a claim of Navier-Stokes solution without forcing — declared.
+- **DNS 2D own solver:** Pseudo-spectral standard solver (Boffetta-Ecke: 2/3 de-alias, RK2, exact dissipation+friction per integration step, constant physical forcing $F_0$ on shells $k\in[3,5]$). Three hard-learned physics lessons documented in code: (1) $\hat{\psi} = +\hat{\omega}/k^2$ — the negative sign inverts $u,v$ and reverses enstrophy cascade; (2) forcing amplitude is PHYSICAL (Parseval: $|f|_{	ext{rms}} = f_0$ requires $\sum|f_k|^2 = (f_0\cdot N^2)^2$) — with unit-norm $f_k$ the forcing was $\sim10^{-5}$ and the cascade never filled the spectrum; (3) $\chi pprox f_0^2$ (not 1): real dissipation scale $k_d \sim (f_0^2/
+u^3)^{1/6}$ — $Re_{	ext{sat}} \sim 9400$ at $N=128$. Window declaration $k\in[6,20]$ (apriori, same for all $
+u$) gives $G^* \in [24.4, 29.9]$ with $a = dG^*/d\ln(1/
+u) = -6.74$, negative sign contrary to prediction $+4.5$ — the **window contamination artifact** is the finding: it explains the "impossible" $G^*pprox3634$ from the external 2D paper structurally, with our own data.
+- **Key negative results honestly labeled:** (1) Migdal log-periodic not detectable in 2D own decay (14 times, same score) nor in real 3D DNS (box: score 22.5, null med 18.7, $p=0.45$; iso$1024$: score 47.7, null med 45.1, $p=0.43$). (2) Automatic detector fails on real data: spikes with concha-to-concha noise ($\sim10	ext{--}15\%$ at low $k$) and cuts 3-8 points; two-sided inertial window finds no valid window. Requires smoothed slope (window 5) for real data. (3) DNS 2D window artifact explains structurally the "impossible" $G^*pprox3634$ from the external 2D paper — the window declaration without a physically defined cutoff contaminates the integral differently at each $
+u$.
+
+## Reproduction
 
 ```bash
 cd codigo
@@ -49,292 +61,34 @@ python3 sddf_completo.py ../datos/espectros ../datos ../figuras
 cd .. && python3 tests/test_estimador_principal.py
 ```
 
-## Usar el estimador sobre un espectro propio
+## Using the estimator on your own spectrum
 
 ```python
 from estimador_principal import medir_exponente_espectral
 
-# k, E: arrays de tu espectro. eta: escala de Kolmogorov (nu^3/eps)^(1/4).
-# beta: constante del modelo de corte que corresponda a TU espectro
-# (no asumas 5.2 de Pope sin verificar — ver AUDITORIA.md, hallazgo A3/A6).
+# k, E: arrays of your spectrum. eta: Kolmogorov scale (nu^3/eps)^(1/4).
+# beta: model constant for your cutoff (do NOT assume 5.2 from Pope without verifying — see AUDITORIA.md, findings A3/A6).
 q, mu, k_corte = medir_exponente_espectral(k, E, eta, delta=0.10, beta=2.25)
 ```
 
-## Estado
+## Citation
 
-Ver `AUDITORIA.md` para el historial completo y `paper/PAPER.md` sección 11
-para las limitaciones abiertas (recuperación de `spectrum_grueso.csv` y
-recálculo del paper 2D, ambos bloqueados por falta de datos de entrada, no
-de método).
+For citations, refer to `paper/PAPER.md` sección 11 for the full document with all results, including the closed-form derivation, DNS validation evidence, and honest labeling of negative results. The central formula $G^*[u] = rac{25}{12}\ln Re + b(\delta) + \mathcal{O}(Re^{-1})$ derives from $(5/3)^2 \cdot 3/4$ and is verified numerically across $Re=100..2000$.
 
-## Novedades v3.8 (2026-10-02) — DNS 2D propia: solver + protocolo a N=128
+## Related work
 
-- `codigo/exp_dns2d.py`: **DNS 2D propia** (solver pseudo-espectral estándar
-  Boffetta-Ecke: de-alias 2/3, RK2, disipación+fricción exactas por factor de
-  integración, forzado constante físico F0 en shells k∈[3,5]). Tres lecciones
-  de física duras documentadas en el código: (1) ψ̂ = +ŵ/k² — el signo negativo
-  invierte u,v y revierte el flujo de enstrofia; (2) la amplitud del forzado es
-  FÍSICA (Parseval: |f|_rms = f0 exige Σ|fk|² = (f0·N²)²) — con fk unit-norm el
-  forzado era ~1e-5 y la cascada jamás llenaba el espectro; (3) χ ≈ f0² (no 1):
-  k_d real ~ (f0²/ν³)^{1/6} — Re_sat ~ 9400 en N=128.
-- `codigo/exp_dns2d_analisis.py`: análisis con **ventana declarada a priori**
-  k∈[6,20] (misma en todo ν). Resultado: G* ∈ [24.4, 29.9] con a = dG*/dln(1/ν)
-  = **−6.74, signo NEGATIVO** contra la predicción +4.5 — y el diagnóstico es
-  el hallazgo: la ventana fija atrapa distinto roll-off disipativo en cada ν
-  (kd real 23.7→33.7 roza la ventana) — el **artefacto de contaminación de
-  ventana**, el mismo que el paper del documento marca como "corte sin ventana
-  física definida". A N=128 (43 conchas, rango inercial ~1.7 decadas) el
-  protocolo del corte por pendiente + k_c móvil NO tiene separación para
-  aplicarse: el "G*≈3634 imposible" del paper 2D queda explicado estructuralmente
-  con nuestro propio dato.
-- **Migdal sobre el decay propio** (14 tiempos, mismo score): mediana 7.01, muy
-  por debajo del null sintético (18.7) — **tercer negativo honesto**: la firma
-  log-periódica no emerge en decay 2D ni en DNS 3D real (v3.7). Consistente.
-- Salida: `datos/espectros_2d/` (3 forzado + 14 decay),
-  `datos/24_dns2d_analisis.csv` + resumen.
+The observable $G[u]$ shares the "observer collapse" pattern with the $ho$-law of the repo [Rylow999/fhrr-rho-collapse](https://github.com/Rylow999/fhrr-rho-collapse): when the spectrum is measured on a discrete grid, the truncation error does not decay monotonically — it oscillates. The substrate (the flow) has the structure; the instrument (the grid) is the one that distorts it near its resolution limit. The multi-observer experiment (repo [Rylow999/rho-law](https://github.com/Rylow999/rho-law)) shows that there are invariant quantities between observers (ratios between windows, $CVpprox0.24$) and quantities that are artifacts ($G_{	ext{total}}$, $CVpprox0.7$). See [NOUS/RHO_LAW/](https://github.com/Rylow999/NOUS/RHO_LAW/) for the unifying cross-domain framework.
 
-## Novedades v3.7 (2026-10-02) — Migdal sobre DNS real: resultado negativo honesto
+## Status & honest labeling
 
-- `codigo/exp_migdal_real.py`: el test log-periódico de Migdal aplicado a los
-  espectros JHTDB **reales** cacheados (box 256³ e isotrópico 1024³), con el
-  null honesto para datos reales: **bootstrap de la incertidumbre por concha**
-  (E_sem del CSV, N_BOOT=600). Resultado: **no detectable** — box: score 22.5
-  (null med 18.7, q95 92.4, p=0.45); iso1024: score 47.7 (null med 45.1, q95
-  56.9, p=0.43). Además ω_obs=8.00 cae en el BORDE de la grilla Ω∈[0.3,8]:
-  firma del artefacto de detrending cúbico, no señal. Nota honesta: los dos
-  espectros box son bit a bit idénticos (mismo md5) — el test tuvo 2 espectros
-  independientes, no 3. La calibración sintética (v3.2) queda reforzada; la
-  firma exige mayor rango inercial resuelto → motiva el 4096³.
-- Detalle metodológico: el null usa la E_sem medida (incertidumbre concha a
-  concha), no ruido sintético inyectado — es el contraste con el null del
-  bloque 14, que calibraba sobre espectros analíticos exactos.
+Refer to `AUDITORIA.md` for the complete history and `paper/PAPER.md` sección 11 for open limitations (recovery of `spectrum_grueso.csv` and recalculation of the 2D paper, both blocked by lack of input data, not by method). Key honest labelings:
 
-## Novedades v3.6 (2026-09-29) — pipeline local del box completo + hypo documentado
+- The central formula is **algebraically proven** (theorem); DNS evidence is consistent with the physical regime but does not prove the theorem universally.
+- All three Migdal test results are formally labeled as **honest negative results** (type "medium"): they eliminate a family of predictions and delimit the validity regime of the program, not a failure.
+- The DNS 2D window artifact is the structural explanation for the "impossible" $G^*pprox3634$ from the external 2D paper — the window declaration without a physically defined cutoff contaminates the integral differently at each $
+u$.
+- The $arepsilon$ "spectral" reported in earlier versions ($9.46	imes$ the documented value integrating the full range) is an artifact of a non-periodic $256^3$ spectrum with Hanning window; the gradient-validated $arepsilon$ ($0.96	imes$ documented) is the reliable quantity.
 
-- `codigo/exp_dns_real_local35.py`: re-análisis del box JHTDB completo
-  desde la descarga local (8.6 GB en `datos/jhtdb_cache/`). Procesa los 8
-  octantes de 256³ directamente del HDF5 local en **75 segundos** (era ~15
-  min por HTTP range). Confirma exactamente los números de v3.4:
-  ε-gradientes 0.96× doc, ventana detectada k∈[12,56] con w=5, q=1.53.
-  Ahora es el pipeline canónico para los datos JHTDB cacheados.
-- Detalle importante honesto: el ε "espectral" reportado en esta versión
-  (9.46× el doc al integrar todo el rango) es el artefacto de fuga de un
-  espectro no-periódico de 256³ por ventana Hanning; el estimador por
-  gradientes (0.96×) es el chequeo fiable. La documentación advierte la
-  diferencia — no confundir el ε del resumen con el validado.
-
-## Novedades v3.5 (2026-09-29) — extensión hipodissipativa documentada
-
-- `codigo/exp_sddf_hypo.py`: forma cerrada del observable con disipación
-  generalizada γ, con ajuste de β contra el espectro DNS real y
-  confirmación de que γ=2 es el mejor ajuste.
-- `HYPO_DISSIPATIVE_NOTAS.md`: derivación formal completa del factor
-  G*_γ = (25/16)·γ·ln Re + b(γ), crítica honesta del programa
-  Buckmaster-Alpöge y chequeo contra datos reales. **No es un claim de
-  solución del problema de Navier-Stokes sin forzamiento** — queda
-  explícito.
-
-## Novedades v3.4 (2026-09-28) — detector sobre pendiente suavizada
-
-Lección metodológica del contraste con DNS real (v3.3): el detector
-puntual (`local_slope`) se dispara con el ruido concha-a-concha del
-espectro real (sem ~10-15% a k bajos) y corta en 3-8 puntos.
-
-### Added
-
-- `sddf_core.smoothed_slope(k, e, window=5)`: pendiente log-log local
-  SUAVIZADA — regresión lineal en una ventana móvil de `window` conchas
-  centrada en cada punto. Bordes con ventana recortada (asimétrica).
-- `sddf_core.inertial_window_smoothed(k, e, delta, s_ref, window)`: detector
-  de rango inercial de dos lados sobre la pendiente suavizada. Los puntos
-  de borde (window//2 a cada lado) **no participan de la detección**
-  (ventana recortada → pendiente no confiable).
-- `codigo/exp_detector_suavizado.py`: validación cruzada sintético (ruido
-  creciente 0-10%) + DNS real. Salida `datos/19_detector_suavizado.csv`.
-- `tests/test_detector_suavizado.py`: 4 tests de regresión.
-
-### Resultados (trade-off real del ancho de ventana)
-
-| caso | puntual | w=5 | w=9 | w=11 |
-|------|---------|-----|-----|------|
-| sintético sin ruido | ok (q=1.738) | ok (igual) | ok (igual) | ok (igual) |
-| sintético ruido 1% | **falla** (corta en k=1.05) | falla | ok (q=1.78, span 4.9) | ok (q=1.78) |
-| sintético ruido 3% | falla | falla | falla | ok (span 2.3) |
-| **DNS real** (8 bloques) | **falla** (ok=0) | **ok: k∈[12,56], q=1.53** | sobresuaviza (ok=0) | sobresuaviza (ok=0) |
-
-- Recomendación: w=5 para espectros de DNS conbineado en conchas |k|
-  (~2% de sem en el promedio de 8 bloques); w=9-11 para espectros con
-  más ruido o menos bloques promediados.
-- El detector suavizado es **conservador por diseño** en el borde bajo
-  (excluye los primeros window//2 puntos): para el grid del box
-  (k=4n) eso significa k_low≥12 con w=5. Honestidad del método: no
-  inventa ventana donde no hay evidencia local suficiente.
-- El puntual queda para espectros analíticos/ajustados (donde funcionó
-  siempre); no está deprecado.
-
-## Novedades v3.1 (2026-09-17) — fixes post-auditoría
-
-Cambios derivados de la auditoría externa, validados con tests
-(ver `CHANGELOG.md` para el detalle completo):
-
-- **`sddf_core.q_from_G_closed_form`** — despeje analítico directo de q
-  desde la forma cerrada (cuadrática explícita, error ~1e-14). Reemplaza la
-  iteración de punto fijo. **Lanza ValueError si el discriminante es
-  negativo** (datos inconsistentes con el modelo) en vez de devolver 0 en
-  silencio.
-- **`sddf_core.inertial_window`** — detector de rango inercial de **dos
-  lados** (k_low + k_high). El pipeline original solo cortaba el lado de
-  disipación; el lado de forzado (k bajos) quedaba invisible y contaminaba
-  el integral.
-- Semántica de `truncate_by_slope_interp` documentada: el corte es contra
-  `s_ref` (K41 por defecto), no contra el q que se está estimando.
-
-### Pendiente (honesto)
-
-- ~~**Null model del periodograma de Migdal**~~ **RESUELTO (2026-09-22)**:
-  `codigo/exp_null_model_periodograma.py` — 500 nulos instrumentales
-  (beta/nu jittereados + ruido de medición 1e-4), p-values empíricos,
-  Bonferroni y umbral global. Resultados en
-  `datos/16_null_model_periodograma.csv`:
-  | amp | SNR_obs | p empírico | p Bonferroni | ¿pasa? |
-  |-----|---------|-----------|--------------|--------|
-  | 0.000 | 19.40 | 0.567 | 1.00 | no — el "SNR~19" reportado antes **era**
-  artefacto del null, no señal (confirmado: los 500 nulos tienen
-  media 19.42 sin señal inyectada) |
-  | 0.002 | 18.56 | 1.0 | 1.0 | no |
-  | 0.005 | 15.65 | 1.0 | 1.0 | no |
-  | 0.020 | 76.95 | 0.0020 | 0.00998 | **sí** |
-  | 0.050 | 293.5 | 0.0020 | 0.00998 | **sí** (y el pico cae en ω≈2.0, el
-  inyectado; los que fallan caen en ω≈0.9, basura del detrend) |
-
-  **Conclusión**: el test es calibrado. El umbral de detección real está
-  entre amp=0.005 (no) y amp=0.02 (sí) con esta ventana inercial y esta
-  estación de análisis.
-- ~~**Sincronizar Rust con Python**~~ **RESUELTO (2026-09-22)**: el binario
-  `codigo/rust/bin/sddf` v3.1 ya tiene `truncate_by_slope_interp` con
-  interpolación lineal idéntica a la de Python (mismo k_corte, mismo G* al
-  dígito sobre `spectrum_Re_1000.csv`) y el fallback sintético usa
-  Pao+β=2.25 (quimera acordada) en vez de Pope 5.2.
-- **Validación con DNS real**: ~~**EN CURSO**~~ **HECHO (2026-09-22/28)**
-  con el box **periódico completo** (no el sub-cubo del mirror ArielLubonja,
-  que resultó no confiable — ver abajo). Fuentes y resultados:
-  - `codigo/exp_dns_real_fullbox.py` — versión final: lee REMOTO (HTTP range)
-    el `coarse_t420.hdf5` del mirror TUM
-    (`thuerey-group/jhtdb-isotropic-turbulence-1024`, dominio completo
-    1024³ float16), baja 8 bloques de 256³ de las esquinas del box
-    (cacheados en `datos/jhtdb_cache/blocks/`), promedia espectros y corre
-    el pipeline SDDF. Resultados en
-    `datos/espectros/spectrum_jhtdb_box_{hanning,crudo}.csv` y
-    `datos/18_dns_real_box_resumen.txt`.
-  - `codigo/exp_dns_real_isotropo.py` — versión con el mirror ArielLubonja
-    (256³ × 10 timesteps): sirve como contraejemplo del sub-cubo y para
-    validar el espaciado (eps por gradientes).
-  - `codigo/download_jhtdb.sh` — descarga robusta con resume (curl -C -,
-    http1.1, reintentos), escrita cuando el mirror iba a 85 kB/s.
-
-  **Chequeos independientes que pasan** (validan datos y unidades de k):
-  - ε = 2ν⟨s_ij s_ij⟩ por gradientes (NO depende de unidades de k):
-    0.0891 ± 0.0021 vs documentado 0.0928 → **0.96×**. El espaciado
-    alternativo 2π/256 daría 0.008 (0.08×) → descartado sin ambigüedad.
-  - u_rms por bloque: [0.617, 0.668, 0.564] vs documentado 0.681.
-  - Convergencia de ε espectral: 0.93× (hanning) / 1.01× (crudo) a k≤128;
-    la cola k>128 no es confiable (ruido float16 + fuga residual).
-
-  **Resultados SDDF sobre DNS real** (kη = k·0.00287):
-  - Núcleo inercial k∈[8,64] (kη 0.02-0.18): ajuste log-log da
-    **q = 1.60 ± 0.02**, ~4% por debajo de K41 (5/3=1.667). Incluyendo
-    k≤128 (inicio de disipación) q sube a 1.76-1.92 — la ventana importa.
-  - **〈s²〉 NO es invariante de ventana en datos reales**: 2.1-3.3 según
-    dónde se corte. Confirma en DNS real el patrón de la ley ρ: lo estable
-    son cantidades restringidas a una ventana declarada, no G_total.
-  - **El detector automático delta=0.5 falla en datos reales**: calibrado
-    en espectros sintéticos suaves, se dispara con el ruido
-    concha-a-concha del espectro real y corta en 3-8 puntos; el detector
-    de dos lados `inertial_window` no encuentra ventana (ok=False). Para
-    datos reales hace falta pendiente suavizada (ventana de 5 conchas):
-    con suavizado, la pendiente en k=16-24 da −1.69/−1.65, casi exactamente
-    K41.
-  - **Pendiente abierta**: ~~incorporar detección de ventana sobre pendiente
-    suavizada (no puntual) en `sddf_core`~~ **RESUELTO (v3.4)**:
-    `sddf_core.smoothed_slope` (regresión móvil) +
-    `sddf_core.inertial_window_smoothed` (dos lados, bordes excluidos),
-    validados en `tests/test_detector_suavizado.py` y
-    `datos/19_detector_suavizado.csv`. Ver abajo "Novedades v3.4".
-
-  **Por qué el mirror ArielLubonja no alcanzó** (lección aprendida):
-  su snapshot es UN sub-cubo de 256³ = un cuarto de caja, NO periódico
-  (salto de borde 300-360× el interior → fuga espectral), y contiene ~1
-  escala integral (L_int=1.376 vs lado 1.571) → sin muestra estadística en
-  k bajo. Sus 10 timesteps son casi idénticos (dt=0.002 ≪ T_L=1.99):
-  promediarlos no aporta. `datos/17_dns_real_resumen.txt` documenta el
-  contraejemplo completo.
-
-## Conexión con la ley ρ (RHO_LAW)
-
-El observable G[u] comparte el patrón del "colapso del observador" con la
-ley ρ del repo [`Rylow999/fhrr-rho-collapse`](https://github.com/Rylow999/fhrr-rho-collapse):
-
-- Cuando el espectro se mide con grilla discreta, el error de truncamiento
-  **no decae monótonamente** — oscila.
-- El sustrato (el flujo) tiene la estructura; el instrumento (la grilla) es
-  el que la distorsiona cerca de su límite de resolución.
-- El experimento multi-observador (repo `Rylow999/rho-law`) muestra que hay
-  cantidades invariants entre observadores (ratios entre ventanas, CV≈0.24)
-  y cantidades que son artefacto (G_total, CV≈0.7).
-
-Ver `NOUS/RHO_LAW/` para el marco unificador trans-dominio.
+## Motto
 
 *Per Aspera, Ad Astra.*
----
-
-# Auditoria bajo el Metodo Integral (2026-10-10)
-
-*Protocolo: DOCUMENTATION/METODO_INTEGRAL.md del vault (HORIZON).
-Estados obligatorios en cada pieza.*
-
-## Teoremas y verificaciones (estado honesto)
-
-| Pieza | Estado | Detalle |
-|---|---|---|
-| G*[u] = (25/12)ln(Re) + b(delta) | **PROBADO (forma cerrada)** | derivacion algebraica: (5/3)^2 * 3/4 = 25/12; verificado: error numerico 0.06-0.07% en Re=100..2000 (02_validacion), prefactor desviscosado 2.0832 vs exacto 2.0833 (05_prefactor, sesgo 2.6% medido y explicado: correccion finite-eta) |
-| Validacion DNS real (JHTDB) | **EVIDENCIA CONCORDANTE** (no prueba del teorema — el teorema es algebra; la DNS valida el regimen fisico) | q=1.60+-0.02 (k en [8,64]); epsilon por gradientes 0.96x del documentado; detector automatico REQUIERE pendiente suavizada (leccion v3.4: el instrumento define la ventana) |
-| Test de Migdal (log-periodico) | **NEGATIVO HONESTO x3** | sintetico: calibrado (amp 0.005 no pasa, 0.02 pasa p=0.01); DNS real: p=0.43-0.45 (bootstrap E_sem, omega en el BORDE de la grilla = firma de artefacto de detrending); decay 2D propio: 7.01 << null 18.7. Conclusion: la firma NO es detectable a estas resoluciones — resultado negativo, no fracaso: motiva 4096^3 |
-| DNS 2D propia | **EVIDENCIA + DIAGNOSTICO DE ARTEFACTO** | 3+14 espectros; fisica del solver verificada (signo psi, forzado fisico Parseval, chi~f0^2); N=128: ventana declarada contaminada (a=-6.74 negativo = roll-off disipativo desigual por nu) — el ARTEFACTO de ventana es el hallazgo: explica el "imposible" G*=3634 del paper 2D ajeno |
-| Extension hypo-disipativa | **PROBADO (forma cerrada) + nota honesta** | G*_gamma = (25/16)*gamma*ln(Re) + b(gamma); gamma=2 mejor ajuste; NO es claim de solucion de NS sin forzado (declarado) |
-| RPF/estimador principal | **PROBADO + TESTEADO** | tests remotos: todos pasan (intermitencia con beta correcto: error 2e-7; detector suavizado: DNS q=1.5262 vs K41 1.667) |
-
-## Metodos vs tabla del protocolo
-
-| Metodo usado | Clase | Veredicto |
-|---|---|---|
-| Forma cerrada (25/12) | teorema | **cierra** la parte algebraica — es el puente (A6) |
-| DNS real (JHTDB box) | simulacion (4.5) | evidencia concordante; NO prueba fisica universal |
-| Null model bootstrap | falsacion (5.x) | legitimo: calibra el instrumento antes de declarar |
-| Ventana declarada (v3.4+) | aut omata de credito (5.4) | correcto uso: restriccion exacta, no cierre |
-| Migdal sobre decay 2D | simulacion | negativo honesto, documentado |
-
-## Barreras identificadas
-
-1. **Barrera de resolucion (A5/4.3):** el rango inercial a N=128/256 no
-   sostiene el protocolo de corte por pendiente (43 conchas: ruido
-   concha-a-concha ~10-15%). El 4096^3 es la unica via de extension
-   (pendiente: token JHTDB).
-2. **Barrera de detrending:** el score de Migdal con detrending cubico
-   pone picos en el borde de la grilla omega (artefacto identificado) —
-   cualquier futuro test de log-periodicidad DEBE calibrar contra ese
-   artefacto primero (hecho aca: el null del bootstrap lo incluye).
-
-## Correcciones de etiquetas (nada baja de estante; dos precisiones)
-
-- El README deca "sólida" para la validacion DNS: se conserva, con la
-  precision del protocolo: el teorema es algebra (probado), la DNS es
-  evidencia concordante del regimen (no prueba adicional del teorema).
-- Los negativos de Migdal quedan formalmente etiquetados como **resultado
-  negativo** (tipo "medio": eliminan una familia de predicciones y
-  delimitan el regimen de validez del programa).
-
-## Pendientes con estado
-
-- Token JHTDB 4096^3: **pendiente externo** (Luciano).
-- Paper 2D con corte corregido: **bloqueado por datos de entrada** (declarado en v3; sin cambios).
-cat: /tmp/cli_readme.txt: No such file or directory
